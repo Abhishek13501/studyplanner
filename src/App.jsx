@@ -102,6 +102,24 @@ function App() {
     setResult({ correct, total, percentage })
   }
 
+  // ── Retry wrong answers ────────────────────────────────
+  function handleRetry() {
+    // Collect every question the user got wrong (or left unanswered)
+    const wrongQuestions = quiz.questions.filter((question, index) => {
+      return answers[index] !== question.correctIndex
+    })
+
+    const retryQuiz = {
+      title: `${quiz.title} — Retry`,
+      questions: wrongQuestions,
+    }
+
+    setQuiz(retryQuiz)
+    setAnswers(new Array(wrongQuestions.length).fill(null))
+    setCurrentQuestion(0)
+    setResult(null)
+  }
+
   // ── Try another quiz ───────────────────────────────────
   function handleReset() {
     setQuiz(null)
@@ -124,6 +142,10 @@ function App() {
   const q              = quiz ? quiz.questions[currentQuestion] : null
   const selectedAnswer = quiz ? answers[currentQuestion] : null
   const isLastQuestion = quiz ? currentQuestion === quiz.questions.length - 1 : false
+  // How many questions were answered incorrectly (used to show/hide retry button)
+  const wrongCount     = result
+    ? quiz.questions.filter((q, i) => answers[i] !== q.correctIndex).length
+    : 0
 
   // ── Render ─────────────────────────────────────────────
   return (
@@ -144,6 +166,11 @@ function App() {
             </p>
             <p className="results-percentage">{result.percentage}%</p>
             <p className="results-message">{getScoreMessage(result.percentage)}</p>
+            {wrongCount > 0 && (
+              <button className="retry-btn" onClick={handleRetry}>
+                Retry Wrong Answers ({wrongCount})
+              </button>
+            )}
             <button className="generate-btn" onClick={handleReset}>
               Try Another Quiz
             </button>
