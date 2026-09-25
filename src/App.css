@@ -1,233 +1,335 @@
-body {
-  font-family: system-ui, sans-serif;
-  background-color: #f0f2f5;
-  color: #1a1a1a;
-}
+/* ==========================================================
+   StudyForge — App styles
+   Commit 10: professional assessment-style UI
+   All measurements use the design tokens defined in index.css
+   ========================================================== */
 
+
+/* ── Page shell ──────────────────────────────────────────── */
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 48px 16px;
+  /* Top padding gives breathing room; sides keep content off the edge */
+  padding: var(--space-12) var(--space-6) var(--space-10);
 }
 
-/* ── Header ─────────────────────────────────────── */
+@media (max-width: 480px) {
+  .app {
+    padding: var(--space-8) var(--space-4) var(--space-8);
+  }
+}
+
+
+/* ── Header ──────────────────────────────────────────────── */
 .app-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
+  /* Cap width so the tagline doesn't run too wide on large screens */
+  max-width: 480px;
 }
 
 .app-header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: var(--font-size-3xl);
+  font-weight: 800;
+  letter-spacing: -0.03em;     /* tighter tracking reads as premium on large type */
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
 }
 
 .app-header p {
-  font-size: 1rem;
-  color: #555;
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  line-height: 1.55;
 }
 
-/* ── Main column ─────────────────────────────────── */
+@media (max-width: 480px) {
+  .app-header {
+    margin-bottom: var(--space-6);
+  }
+
+  .app-header h1 {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+
+/* ── Main content column ─────────────────────────────────── */
 .app-main {
   width: 100%;
-  max-width: 640px;
+  /* 600px is a comfortable reading/assessment width — not so wide that
+     questions feel like a newspaper column */
+  max-width: 600px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
-/* ── Textarea ────────────────────────────────────── */
+
+/* ── Textarea ────────────────────────────────────────────── */
 .input-area {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 1rem;
-  font-family: inherit;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-text);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
   resize: vertical;
-  background-color: #fff;
-  transition: border-color 0.2s;
+  /* min-height keeps it substantial on all screens without overflow */
+  min-height: 140px;
+  transition: border-color 0.15s;
+}
+
+.input-area::placeholder {
+  color: var(--color-text-light);
 }
 
 .input-area:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: var(--color-border-focus);
+  /* Subtle focus ring that does not enlarge the element */
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .input-area:disabled {
-  background-color: #f5f5f5;
+  background-color: var(--color-surface-alt);
+  color: var(--color-text-muted);
   cursor: not-allowed;
 }
 
-/* ── Error message ───────────────────────────────── */
+
+/* ── Error message ───────────────────────────────────────── */
 .error-message {
-  color: #b91c1c;
-  font-size: 0.9rem;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  padding: 10px 14px;
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  line-height: 1.5;
 }
 
-/* ── Generate button ─────────────────────────────── */
+
+/* ── Primary action button (Generate / Try Another Quiz) ─── */
 .generate-btn {
-  padding: 12px 24px;
-  font-size: 1rem;
+  width: 100%;
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: #fff;
-  background-color: #4f46e5;
+  background-color: var(--color-accent);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background-color 0.2s;
+  /* 44px min height is the recommended touch target for mobile */
+  min-height: 44px;
+  transition: background-color 0.15s;
 }
 
 .generate-btn:hover:not(:disabled) {
-  background-color: #4338ca;
+  background-color: var(--color-accent-dark);
+}
+
+.generate-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .generate-btn:disabled {
-  background-color: #a5b4fc;
+  background-color: var(--color-accent-disabled);
   cursor: not-allowed;
 }
 
-/* ── Quiz card ───────────────────────────────────── */
+
+/* ── Quiz card ───────────────────────────────────────────── */
 .quiz {
-  background-color: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 28px 24px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8) var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-5);
+  box-shadow: var(--shadow-card);
 }
 
+@media (max-width: 480px) {
+  .quiz {
+    padding: var(--space-5) var(--space-4);
+    gap: var(--space-4);
+  }
+}
+
+
+/* ── Quiz title ──────────────────────────────────────────── */
 .quiz-title {
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl);
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--color-text);
+  letter-spacing: -0.01em;
+  /* Thin bottom border creates a clear section break below the title */
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 
+
+/* ── Question counter ────────────────────────────────────── */
 .question-counter {
-  font-size: 0.85rem;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
   font-weight: 600;
+  color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
 }
 
+
+/* ── Question text ───────────────────────────────────────── */
 .question-text {
-  font-size: 1.05rem;
+  font-size: var(--font-size-lg);
+  font-weight: 500;
   line-height: 1.6;
-  color: #1a1a1a;
+  color: var(--color-text);
 }
 
-/* ── Options ─────────────────────────────────────── */
+
+/* ── Options list ────────────────────────────────────────── */
 .options-list {
   list-style: none;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-2);
 }
 
+
+/* ── Option button ───────────────────────────────────────── */
 .option-btn {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 0.95rem;
-  font-family: inherit;
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
   text-align: left;
-  background-color: #f8fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
+  color: var(--color-text);
+  background-color: var(--color-surface-alt);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: border-color 0.15s, background-color 0.15s;
+  /* min-height ensures comfortable tap targets on mobile */
+  min-height: 44px;
+  transition: border-color 0.12s, background-color 0.12s;
 }
 
 .option-btn:hover:not(:disabled) {
-  border-color: #4f46e5;
-  background-color: #eef2ff;
+  border-color: var(--color-accent);
+  background-color: var(--color-accent-bg);
+  color: var(--color-accent-dark);
 }
 
+.option-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* After answering, unselected options go back to default — cursor default */
 .option-btn:disabled {
   cursor: default;
 }
 
-/* Correct answer — green */
+/* Correct: green border + background + text. All three cues together
+   so colorblind users still see the distinction. */
 .option-btn.correct {
-  border-color: #16a34a;
-  background-color: #f0fdf4;
-  color: #15803d;
+  border-color: var(--color-correct-border);
+  background-color: var(--color-correct-bg);
+  color: var(--color-correct);
   font-weight: 600;
 }
 
-/* Wrong selection — red */
+/* Incorrect: same triple-cue approach with red */
 .option-btn.incorrect {
-  border-color: #dc2626;
-  background-color: #fef2f2;
-  color: #b91c1c;
+  border-color: var(--color-incorrect-border);
+  background-color: var(--color-incorrect-bg);
+  color: var(--color-incorrect);
   font-weight: 600;
 }
 
-/* ── Explanation box ─────────────────────────────── */
+
+/* ── Explanation ─────────────────────────────────────────── */
 .explanation {
-  background-color: #f8fafc;
-  border-left: 4px solid #4f46e5;
-  border-radius: 4px;
-  padding: 12px 16px;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  /* Left accent bar visually separates explanation from options */
+  border-left: 3px solid var(--color-accent);
+  background-color: var(--color-accent-bg);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1);
 }
 
 .explanation strong {
-  font-size: 0.95rem;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
-/* ── Navigation buttons ──────────────────────────── */
+
+/* ── Navigation buttons ──────────────────────────────────── */
 .nav-buttons {
   display: flex;
-  gap: 12px;
+  gap: var(--space-3);
   justify-content: flex-end;
-  margin-top: 4px;
+  /* Separator above navigation area */
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
 }
 
+/* Previous / Next — outlined secondary style */
 .nav-btn {
-  padding: 10px 20px;
-  font-size: 0.9rem;
+  padding: var(--space-2) var(--space-5);
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
   font-weight: 600;
-  font-family: inherit;
-  color: #4f46e5;
-  background-color: #fff;
-  border: 2px solid #4f46e5;
-  border-radius: 8px;
+  color: var(--color-accent);
+  background-color: var(--color-surface);
+  border: 1.5px solid var(--color-accent);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
+  min-height: 40px;
+  transition: background-color 0.12s, color 0.12s;
 }
 
 .nav-btn:hover {
-  background-color: #4f46e5;
+  background-color: var(--color-accent);
   color: #fff;
 }
 
-/* ── Mobile ──────────────────────────────────────── */
+.nav-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Finish Quiz — filled primary, same accent colour */
+.finish-btn {
+  background-color: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+
+.finish-btn:hover {
+  background-color: var(--color-accent-dark);
+  border-color: var(--color-accent-dark);
+  color: #fff;
+}
+
 @media (max-width: 480px) {
-  .app {
-    padding: 24px 12px;
-  }
-
-  .app-header h1 {
-    font-size: 2rem;
-  }
-
-  .quiz {
-    padding: 20px 16px;
-  }
-
   .nav-buttons {
     justify-content: stretch;
   }
@@ -238,84 +340,102 @@ body {
   }
 }
 
-/* ── Results card ────────────────────────────────── */
+
+/* ── Results card ────────────────────────────────────────── */
 .results-card {
-  background-color: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 40px 28px;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-10) var(--space-8);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
   text-align: center;
+  box-shadow: var(--shadow-card);
+  /* Width matches quiz card */
+  width: 100%;
 }
 
+/* Quiz title shown again above the score for context */
 .results-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #6b7280;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
+/* The big number — this is the visual anchor of the results screen */
 .results-score {
-  font-size: 3.5rem;
+  font-size: 4rem;
   font-weight: 800;
-  color: #4f46e5;
+  color: var(--color-accent);
   line-height: 1;
+  letter-spacing: -0.03em;
 }
 
 .results-percentage {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
 }
 
 .results-message {
-  font-size: 1rem;
-  color: #555;
-  max-width: 380px;
+  font-size: var(--font-size-base);
+  color: var(--color-text-muted);
+  max-width: 340px;
   line-height: 1.6;
 }
 
-/* ── Finish button (same shape as nav-btn, filled) ── */
-.finish-btn {
-  background-color: #4f46e5;
-  color: #fff;
-  border-color: #4f46e5;
-}
-
-.finish-btn:hover {
-  background-color: #4338ca;
-  border-color: #4338ca;
-  color: #fff;
-}
-
-/* ── Retry wrong answers button ──────────────────── */
-.retry-btn {
+/* Divider between message and action buttons */
+.results-card .generate-btn,
+.results-card .retry-btn {
   width: 100%;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: #b45309;
-  background-color: #fffbeb;
-  border: 2px solid #f59e0b;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-}
-
-.retry-btn:hover {
-  background-color: #f59e0b;
-  color: #fff;
+  max-width: 320px;
 }
 
 @media (max-width: 480px) {
   .results-card {
-    padding: 28px 16px;
+    padding: var(--space-8) var(--space-5);
   }
 
   .results-score {
-    font-size: 2.75rem;
+    font-size: 3.25rem;
   }
+
+  .results-card .generate-btn,
+  .results-card .retry-btn {
+    max-width: 100%;
+  }
+}
+
+
+/* ── Retry wrong answers button ──────────────────────────── */
+/* Secondary style: amber/warning — different from the primary blue
+   so users immediately understand it is a different action */
+.retry-btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-6);
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: #92400e;               /* dark amber text */
+  background-color: #fffbeb;
+  border: 1.5px solid #d97706;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  min-height: 44px;
+  transition: background-color 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.retry-btn:hover {
+  background-color: #fef3c7;
+  border-color: #b45309;
+  color: #78350f;
+}
+
+.retry-btn:focus-visible {
+  outline: 2px solid #d97706;
+  outline-offset: 2px;
 }

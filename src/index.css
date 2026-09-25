@@ -1,6 +1,97 @@
-/* Global reset */
+/* ── Google Font ─────────────────────────────────────────
+   Inter is the standard choice for professional SaaS/assessment
+   products. It is highly legible at all weights and sizes.
+   --------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Reset ───────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* ── Design tokens ───────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --color-bg:          #f4f6f8;   /* page background — cool off-white */
+  --color-surface:     #ffffff;   /* card / panel surface */
+  --color-surface-alt: #f8f9fb;   /* textarea, option resting background */
+
+  /* Borders */
+  --color-border:      #dde1e7;   /* default border */
+  --color-border-focus:#2563eb;   /* focus ring — professional blue */
+
+  /* Text */
+  --color-text:        #1c2230;   /* primary text — near-black with slight cool tone */
+  --color-text-muted:  #6b7585;   /* secondary / helper text */
+  --color-text-light:  #9aa1ae;   /* placeholder, tertiary */
+
+  /* Accent — professional blue (not purple/indigo) */
+  --color-accent:      #2563eb;
+  --color-accent-dark: #1d4ed8;
+  --color-accent-bg:   #eff6ff;   /* very light tint for hover states */
+  --color-accent-disabled: #93c5fd;
+
+  /* Feedback */
+  --color-correct:        #166534;  /* dark green text */
+  --color-correct-bg:     #f0fdf4;
+  --color-correct-border: #86efac;
+
+  --color-incorrect:        #991b1b; /* dark red text */
+  --color-incorrect-bg:     #fef2f2;
+  --color-incorrect-border: #fca5a5;
+
+  --color-error:        #b91c1c;
+  --color-error-bg:     #fef2f2;
+  --color-error-border: #fecaca;
+
+  /* Shadows — single restrained shadow, no stacked layers */
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  /* Spacing scale */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  6px;
+  --radius-lg:  8px;
+
+  /* Typography */
+  --font-base: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-sm:   0.8125rem;  /* 13px */
+  --font-size-base: 0.9375rem;  /* 15px */
+  --font-size-md:   1rem;       /* 16px */
+  --font-size-lg:   1.0625rem;  /* 17px */
+  --font-size-xl:   1.25rem;    /* 20px */
+  --font-size-2xl:  1.5rem;     /* 24px */
+  --font-size-3xl:  2rem;       /* 32px */
+
+  --line-height-text: 1.65;
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+html {
+  /* Prevents layout shift when a scrollbar appears/disappears */
+  scrollbar-gutter: stable;
+}
+
+body {
+  font-family: var(--font-base);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-text);
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Prevent horizontal scroll on any viewport */
+  overflow-x: hidden;
 }
