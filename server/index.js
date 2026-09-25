@@ -2,6 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import Groq from 'groq-sdk'
+import validateQuiz from './validateQuiz.js'
 
 const app = express()
 const PORT = 5000
@@ -58,6 +59,10 @@ Rules:
 
     try {
       const quiz = JSON.parse(rawText)
+      const result = validateQuiz(quiz)
+      if (!result.valid) {
+        return res.status(502).json({ error: 'Invalid quiz format' })
+      }
       return res.status(200).json(quiz)
     } catch {
       return res.status(502).json({ error: 'Invalid AI response' })
