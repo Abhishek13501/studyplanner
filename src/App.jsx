@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react'
 import './App.css'
 
-// Returns a short message based on the score percentage
 function getScoreMessage(percentage) {
   if (percentage === 100) return '🎉 Perfect score! Outstanding work.'
   if (percentage >= 80)  return '👏 Great job! You know this topic well.'
@@ -11,31 +10,23 @@ function getScoreMessage(percentage) {
 }
 
 function App() {
-  // ── Generation form state ──────────────────────────────
   const [input, setInput]     = useState('')
   const [quiz, setQuiz]       = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState('')
-
-  // ── Quiz navigation state ──────────────────────────────
   const [currentQuestion, setCurrentQuestion] = useState(0)
-
-  // answers[i] = the option index the user chose for question i, or null if unanswered
+  // answers[i] = option index chosen for question i, or null if unanswered
   const [answers, setAnswers] = useState([])
-
-  // ── Results state ──────────────────────────────────────
   // null = quiz in progress; object = quiz finished
   const [result, setResult] = useState(null)
 
-  // ── Request-management refs ────────────────────────────
-  // Tracks which request is the latest so stale responses are ignored.
-  const requestIdRef    = useRef(0)
-  // Holds the AbortController for the in-flight request so we can cancel it.
+  // Each request gets an incrementing ID. Before updating state, we check
+  // that the response belongs to the latest request — older responses are discarded.
+  const requestIdRef       = useRef(0)
   const abortControllerRef = useRef(null)
 
   const TIMEOUT_MS = 30_000
 
-  // ── Generate quiz ──────────────────────────────────────
   async function handleGenerate() {
     const trimmed = input.trim()
 
@@ -44,20 +35,16 @@ function App() {
       return
     }
 
-    // Cancel any request still running from a previous click
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
 
-    // Stamp this request with a unique ID
     const requestId = requestIdRef.current + 1
     requestIdRef.current = requestId
 
-    // Fresh controller for this request
     const controller = new AbortController()
     abortControllerRef.current = controller
 
-    // Abort automatically after 30 s
     const timeoutId = setTimeout(() => controller.abort('timeout'), TIMEOUT_MS)
 
     setLoading(true)
@@ -75,7 +62,7 @@ function App() {
         signal: controller.signal,
       })
 
-      // A newer request was already started — discard this response
+      // Discard if a newer request has already taken over
       if (requestId !== requestIdRef.current) return
 
       const data = await response.json()
@@ -88,40 +75,33 @@ function App() {
       setAnswers(new Array(data.questions.length).fill(null))
       setQuiz(data)
     } catch (err) {
-      // A newer request aborted this one — stay silent, the new request owns the UI
       if (requestId !== requestIdRef.current) return
 
       if (err.name === 'AbortError') {
-        // Distinguish timeout abort from user-triggered abort
+        // 'timeout' is the reason string passed to controller.abort() above
         if (err.message === 'timeout') {
           setError('The request took too long. Please try again.')
         }
-        // If aborted for any other reason (e.g. a newer request), show nothing
         return
       }
 
-      // Genuine network failure (server down, DNS error, etc.)
       setError('Unable to connect to the server. Please try again.')
     } finally {
       clearTimeout(timeoutId)
-      // Only turn off loading if this is still the latest request
+      // Only the latest request should turn off the loading state
       if (requestId === requestIdRef.current) {
         setLoading(false)
       }
     }
   }
 
-  // ── Option selection ───────────────────────────────────
   function handleSelectOption(optionIndex) {
-    // Lock: ignore clicks if this question already has an answer
     if (answers[currentQuestion] !== null) return
-
     const updated = [...answers]
     updated[currentQuestion] = optionIndex
     setAnswers(updated)
   }
 
-  // ── Navigation ─────────────────────────────────────────
   function handlePrevious() {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1)
@@ -134,7 +114,6 @@ function App() {
     }
   }
 
-  // ── Finish quiz → calculate score ─────────────────────
   function handleFinish() {
     const correct = quiz.questions.reduce((count, question, index) => {
       return answers[index] === question.correctIndex ? count + 1 : count
@@ -146,34 +125,25 @@ function App() {
     setResult({ correct, total, percentage })
   }
 
-  // ── Retry wrong answers ────────────────────────────────
   function handleRetry() {
-    // Collect every question the user got wrong (or left unanswered)
     const wrongQuestions = quiz.questions.filter((question, index) => {
       return answers[index] !== question.correctIndex
     })
 
-    const retryQuiz = {
-      title: `${quiz.title} — Retry`,
-      questions: wrongQuestions,
-    }
-
-    setQuiz(retryQuiz)
+    setQuiz({ title: `${quiz.title} — Retry`, questions: wrongQuestions })
     setAnswers(new Array(wrongQuestions.length).fill(null))
     setCurrentQuestion(0)
     setResult(null)
   }
 
-  // ── Try another quiz ───────────────────────────────────
   function handleReset() {
     setQuiz(null)
     setCurrentQuestion(0)
     setAnswers([])
     setResult(null)
-    // input stays so the user can edit it rather than re-type from scratch
+    // Keep input populated so the user can adjust and regenerate without retyping
   }
 
-  // ── Derive per-option CSS class ────────────────────────
   function getOptionClass(optionIndex, correctIndex) {
     const selected = answers[currentQuestion]
     if (selected === null) return 'option-btn'
@@ -182,16 +152,13 @@ function App() {
     return 'option-btn'
   }
 
-  // ── Convenience values ─────────────────────────────────
   const q              = quiz ? quiz.questions[currentQuestion] : null
   const selectedAnswer = quiz ? answers[currentQuestion] : null
   const isLastQuestion = quiz ? currentQuestion === quiz.questions.length - 1 : false
-  // How many questions were answered incorrectly (used to show/hide retry button)
   const wrongCount     = result
     ? quiz.questions.filter((q, i) => answers[i] !== q.correctIndex).length
     : 0
 
-  // ── Render ─────────────────────────────────────────────
   return (
     <div className="app">
       <header className="app-header">
@@ -201,7 +168,6 @@ function App() {
 
       <main className="app-main">
 
-        {/* ── Results screen ── */}
         {result ? (
           <div className="results-card">
             <h2 className="results-title">{quiz.title}</h2>
@@ -221,7 +187,6 @@ function App() {
           </div>
         ) : (
           <>
-            {/* ── Input form ── */}
             <textarea
               className="input-area"
               placeholder="e.g. The water cycle, JavaScript promises, Chapter 3 notes…"
@@ -241,7 +206,6 @@ function App() {
               {loading ? 'Generating…' : 'Generate Quiz'}
             </button>
 
-            {/* ── Quiz interface ── */}
             {quiz && (
               <div className="quiz">
                 <h2 className="quiz-title">{quiz.title}</h2>
@@ -266,7 +230,6 @@ function App() {
                   ))}
                 </ul>
 
-                {/* Explanation appears once the user picks an answer */}
                 {selectedAnswer !== null && (
                   <div className="explanation">
                     <strong>

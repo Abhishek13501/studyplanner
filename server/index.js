@@ -7,12 +7,10 @@ import validateQuiz from './validateQuiz.js'
 const app = express()
 const PORT = 5000
 
+// The API key is read from the environment so it never reaches the browser
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
-// Allow requests from the Vite dev server
 app.use(cors({ origin: 'http://localhost:5173' }))
-
-// Parse incoming JSON request bodies
 app.use(express.json())
 
 app.post('/api/generate', async (req, res) => {
