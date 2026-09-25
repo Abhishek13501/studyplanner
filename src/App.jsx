@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import './App.css'
 
 // Returns a short message based on the score percentage
@@ -27,6 +27,14 @@ function App() {
   // null = quiz in progress; object = quiz finished
   const [result, setResult] = useState(null)
 
+  // ── Request-management refs ────────────────────────────
+  // Tracks which request is the latest so stale responses are ignored.
+  const requestIdRef    = useRef(0)
+  // Holds the AbortController for the in-flight request so we can cancel it.
+  const abortControllerRef = useRef(null)
+
+  const TIMEOUT_MS = 30_000
+
   // ── Generate quiz ──────────────────────────────────────
   async function handleGenerate() {
     const trimmed = input.trim()
@@ -35,6 +43,22 @@ function App() {
       setError('Please enter a topic or some study notes before generating.')
       return
     }
+
+    // Cancel any request still running from a previous click
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Stamp this request with a unique ID
+    const requestId = requestIdRef.current + 1
+    requestIdRef.current = requestId
+
+    // Fresh controller for this request
+    const controller = new AbortController()
+    abortControllerRef.current = controller
+
+    // Abort automatically after 30 s
+    const timeoutId = setTimeout(() => controller.abort('timeout'), TIMEOUT_MS)
 
     setLoading(true)
     setError('')
@@ -48,7 +72,11 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: trimmed }),
+        signal: controller.signal,
       })
+
+      // A newer request was already started — discard this response
+      if (requestId !== requestIdRef.current) return
 
       const data = await response.json()
 
@@ -57,13 +85,29 @@ function App() {
         return
       }
 
-      // Initialise an answers array with null for every question
       setAnswers(new Array(data.questions.length).fill(null))
       setQuiz(data)
-    } catch {
-      setError('Could not reach the server. Make sure the backend is running.')
+    } catch (err) {
+      // A newer request aborted this one — stay silent, the new request owns the UI
+      if (requestId !== requestIdRef.current) return
+
+      if (err.name === 'AbortError') {
+        // Distinguish timeout abort from user-triggered abort
+        if (err.message === 'timeout') {
+          setError('The request took too long. Please try again.')
+        }
+        // If aborted for any other reason (e.g. a newer request), show nothing
+        return
+      }
+
+      // Genuine network failure (server down, DNS error, etc.)
+      setError('Unable to connect to the server. Please try again.')
     } finally {
-      setLoading(false)
+      clearTimeout(timeoutId)
+      // Only turn off loading if this is still the latest request
+      if (requestId === requestIdRef.current) {
+        setLoading(false)
+      }
     }
   }
 
