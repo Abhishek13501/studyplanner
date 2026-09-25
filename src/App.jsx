@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import './App.css'
 
+// Returns a short message based on the score percentage
+function getScoreMessage(percentage) {
+  if (percentage === 100) return '🎉 Perfect score! Outstanding work.'
+  if (percentage >= 80)  return '👏 Great job! You know this topic well.'
+  if (percentage >= 60)  return '👍 Good effort. A little more review will help.'
+  if (percentage >= 40)  return '📖 Keep studying — you\'re making progress.'
+  return '💪 This topic needs more attention. Give it another read!'
+}
+
 function App() {
   // ── Generation form state ──────────────────────────────
   const [input, setInput]     = useState('')
@@ -10,8 +19,13 @@ function App() {
 
   // ── Quiz navigation state ──────────────────────────────
   const [currentQuestion, setCurrentQuestion] = useState(0)
-  // null = nothing selected yet; number = index of the chosen option
-  const [selectedAnswer, setSelectedAnswer]   = useState(null)
+
+  // answers[i] = the option index the user chose for question i, or null if unanswered
+  const [answers, setAnswers] = useState([])
+
+  // ── Results state ──────────────────────────────────────
+  // null = quiz in progress; object = quiz finished
+  const [result, setResult] = useState(null)
 
   // ── Generate quiz ──────────────────────────────────────
   async function handleGenerate() {
@@ -25,9 +39,9 @@ function App() {
     setLoading(true)
     setError('')
     setQuiz(null)
-    // Reset quiz navigation whenever a new quiz is generated
     setCurrentQuestion(0)
-    setSelectedAnswer(null)
+    setAnswers([])
+    setResult(null)
 
     try {
       const response = await fetch('http://localhost:5000/api/generate', {
@@ -43,6 +57,8 @@ function App() {
         return
       }
 
+      // Initialise an answers array with null for every question
+      setAnswers(new Array(data.questions.length).fill(null))
       setQuiz(data)
     } catch {
       setError('Could not reach the server. Make sure the backend is running.')
@@ -52,39 +68,64 @@ function App() {
   }
 
   // ── Option selection ───────────────────────────────────
-  function handleSelectOption(index) {
-    // Ignore clicks after the user has already answered
-    if (selectedAnswer !== null) return
-    setSelectedAnswer(index)
+  function handleSelectOption(optionIndex) {
+    // Lock: ignore clicks if this question already has an answer
+    if (answers[currentQuestion] !== null) return
+
+    const updated = [...answers]
+    updated[currentQuestion] = optionIndex
+    setAnswers(updated)
   }
 
   // ── Navigation ─────────────────────────────────────────
-  function handleNext() {
-    if (currentQuestion < quiz.questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1)
-      setSelectedAnswer(null)
-    }
-  }
-
   function handlePrevious() {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1)
-      setSelectedAnswer(null)
     }
   }
 
+  function handleNext() {
+    if (currentQuestion < quiz.questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1)
+    }
+  }
+
+  // ── Finish quiz → calculate score ─────────────────────
+  function handleFinish() {
+    const correct = quiz.questions.reduce((count, question, index) => {
+      return answers[index] === question.correctIndex ? count + 1 : count
+    }, 0)
+
+    const total      = quiz.questions.length
+    const percentage = Math.round((correct / total) * 100)
+
+    setResult({ correct, total, percentage })
+  }
+
+  // ── Try another quiz ───────────────────────────────────
+  function handleReset() {
+    setQuiz(null)
+    setCurrentQuestion(0)
+    setAnswers([])
+    setResult(null)
+    // input stays so the user can edit it rather than re-type from scratch
+  }
+
   // ── Derive per-option CSS class ────────────────────────
-  // Called after an answer is selected to colour correct/wrong options.
   function getOptionClass(optionIndex, correctIndex) {
-    if (selectedAnswer === null) return 'option-btn'
+    const selected = answers[currentQuestion]
+    if (selected === null) return 'option-btn'
     if (optionIndex === correctIndex) return 'option-btn correct'
-    if (optionIndex === selectedAnswer) return 'option-btn incorrect'
+    if (optionIndex === selected)     return 'option-btn incorrect'
     return 'option-btn'
   }
 
-  // ── Render ─────────────────────────────────────────────
-  const q = quiz ? quiz.questions[currentQuestion] : null
+  // ── Convenience values ─────────────────────────────────
+  const q              = quiz ? quiz.questions[currentQuestion] : null
+  const selectedAnswer = quiz ? answers[currentQuestion] : null
+  const isLastQuestion = quiz ? currentQuestion === quiz.questions.length - 1 : false
 
+  // ── Render ─────────────────────────────────────────────
   return (
     <div className="app">
       <header className="app-header">
@@ -93,75 +134,101 @@ function App() {
       </header>
 
       <main className="app-main">
-        {/* ── Input form ── */}
-        <textarea
-          className="input-area"
-          placeholder="e.g. The water cycle, JavaScript promises, Chapter 3 notes…"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          disabled={loading}
-          rows={6}
-        />
 
-        {error && <p className="error-message">{error}</p>}
-
-        <button
-          className="generate-btn"
-          onClick={handleGenerate}
-          disabled={loading}
-        >
-          {loading ? 'Generating…' : 'Generate Quiz'}
-        </button>
-
-        {/* ── Quiz interface ── */}
-        {quiz && (
-          <div className="quiz">
-            <h2 className="quiz-title">{quiz.title}</h2>
-
-            <p className="question-counter">
-              Question {currentQuestion + 1} of {quiz.questions.length}
+        {/* ── Results screen ── */}
+        {result ? (
+          <div className="results-card">
+            <h2 className="results-title">{quiz.title}</h2>
+            <p className="results-score">
+              {result.correct} / {result.total}
             </p>
+            <p className="results-percentage">{result.percentage}%</p>
+            <p className="results-message">{getScoreMessage(result.percentage)}</p>
+            <button className="generate-btn" onClick={handleReset}>
+              Try Another Quiz
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* ── Input form ── */}
+            <textarea
+              className="input-area"
+              placeholder="e.g. The water cycle, JavaScript promises, Chapter 3 notes…"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={loading}
+              rows={6}
+            />
 
-            <p className="question-text">{q.question}</p>
+            {error && <p className="error-message">{error}</p>}
 
-            <ul className="options-list">
-              {q.options.map((option, index) => (
-                <li key={index}>
-                  <button
-                    className={getOptionClass(index, q.correctIndex)}
-                    onClick={() => handleSelectOption(index)}
-                    disabled={selectedAnswer !== null}
-                  >
-                    {option}
-                  </button>
-                </li>
-              ))}
-            </ul>
+            <button
+              className="generate-btn"
+              onClick={handleGenerate}
+              disabled={loading}
+            >
+              {loading ? 'Generating…' : 'Generate Quiz'}
+            </button>
 
-            {/* Explanation appears only after the user selects an answer */}
-            {selectedAnswer !== null && (
-              <div className="explanation">
-                <strong>
-                  {selectedAnswer === q.correctIndex ? '✓ Correct!' : '✗ Incorrect'}
-                </strong>
-                <p>{q.explanation}</p>
+            {/* ── Quiz interface ── */}
+            {quiz && (
+              <div className="quiz">
+                <h2 className="quiz-title">{quiz.title}</h2>
+
+                <p className="question-counter">
+                  Question {currentQuestion + 1} of {quiz.questions.length}
+                </p>
+
+                <p className="question-text">{q.question}</p>
+
+                <ul className="options-list">
+                  {q.options.map((option, index) => (
+                    <li key={index}>
+                      <button
+                        className={getOptionClass(index, q.correctIndex)}
+                        onClick={() => handleSelectOption(index)}
+                        disabled={selectedAnswer !== null}
+                      >
+                        {option}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Explanation appears once the user picks an answer */}
+                {selectedAnswer !== null && (
+                  <div className="explanation">
+                    <strong>
+                      {selectedAnswer === q.correctIndex ? '✓ Correct!' : '✗ Incorrect'}
+                    </strong>
+                    <p>{q.explanation}</p>
+                  </div>
+                )}
+
+                <div className="nav-buttons">
+                  {currentQuestion > 0 && (
+                    <button className="nav-btn" onClick={handlePrevious}>
+                      ← Previous
+                    </button>
+                  )}
+
+                  {!isLastQuestion && (
+                    <button className="nav-btn" onClick={handleNext}>
+                      Next →
+                    </button>
+                  )}
+
+                  {isLastQuestion && (
+                    <button className="nav-btn finish-btn" onClick={handleFinish}>
+                      Finish Quiz
+                    </button>
+                  )}
+                </div>
               </div>
             )}
-
-            <div className="nav-buttons">
-              {currentQuestion > 0 && (
-                <button className="nav-btn" onClick={handlePrevious}>
-                  ← Previous
-                </button>
-              )}
-              {currentQuestion < quiz.questions.length - 1 && (
-                <button className="nav-btn" onClick={handleNext}>
-                  Next →
-                </button>
-              )}
-            </div>
-          </div>
+          </>
         )}
+
       </main>
     </div>
   )

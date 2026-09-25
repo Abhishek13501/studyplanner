@@ -237,3 +237,65 @@ body {
     text-align: center;
   }
 }
+
+/* ── Results card ────────────────────────────────── */
+.results-card {
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 40px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.results-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.results-score {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #4f46e5;
+  line-height: 1;
+}
+
+.results-percentage {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.results-message {
+  font-size: 1rem;
+  color: #555;
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+/* ── Finish button (same shape as nav-btn, filled) ── */
+.finish-btn {
+  background-color: #4f46e5;
+  color: #fff;
+  border-color: #4f46e5;
+}
+
+.finish-btn:hover {
+  background-color: #4338ca;
+  border-color: #4338ca;
+  color: #fff;
+}
+
+@media (max-width: 480px) {
+  .results-card {
+    padding: 28px 16px;
+  }
+
+  .results-score {
+    font-size: 2.75rem;
+  }
+}
