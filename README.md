@@ -1,16 +1,69 @@
-# React + Vite
+# StudyForge
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An AI-powered study assistant that converts free-form notes or topics into structured quizzes.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 (Vite, JavaScript)
+- Express.js
+- Node.js
+- Groq API _(not yet integrated)_
 
-## React Compiler
+## Installation
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+cd studyforge
+npm install
+```
 
-## Expanding the ESLint configuration
+## Environment Variables
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Copy `.env.example` to `.env` and fill in the values:
+
+```bash
+cp .env.example .env
+```
+
+`.env` is listed in `.gitignore` and will never be committed.
+
+## Running the Frontend
+
+```bash
+npm run dev
+```
+
+Runs on http://localhost:5173
+
+## Running the Backend
+
+```bash
+npm run server
+```
+
+Runs on http://localhost:5000
+
+## API Endpoint
+
+### POST /api/generate
+
+**Request body:**
+```json
+{ "input": "your topic or notes" }
+```
+
+**Success (200):**
+```json
+{ "message": "Backend is working", "input": "your topic or notes" }
+```
+
+**Validation error (400):**
+```json
+{ "error": "Input is required" }
+```
+
+## Current Project Status
+
+- [x] React frontend scaffolded (placeholder UI)
+- [x] Express backend with POST /api/generate
+- [ ] Groq API integration
+- [ ] Quiz UI
